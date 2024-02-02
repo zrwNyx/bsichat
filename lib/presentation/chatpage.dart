@@ -25,11 +25,11 @@ class ChatPage extends StatelessWidget {
                 Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                        builder: (BuildContext context) => const AuthScreen()));
+                        builder: (BuildContext context) => AuthScreen()));
               })
         ],
       ),
-      body: const Column(children: const [
+      body: Column(children: [
         Expanded(
           child: ChatMessages(),
         ),

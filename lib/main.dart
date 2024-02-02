@@ -6,7 +6,6 @@ import 'package:firebase/presentation/chatpage.dart';
 import 'package:firebase/provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -36,7 +35,7 @@ class App extends StatelessWidget {
               if (userSnapshot.hasData) {
                 return const ChatPage();
               }
-              return const AuthScreen();
+              return AuthScreen();
             },
           ),
         ),

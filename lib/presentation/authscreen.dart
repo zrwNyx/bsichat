@@ -5,7 +5,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase/presentation/chatpage.dart';
 import 'package:firebase/provider/provider.dart';
 import 'package:firebase/widget/userwidgetpicker.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -13,91 +12,85 @@ import 'package:provider/provider.dart';
 
 final _firebase = FirebaseAuth.instance;
 
-class AuthScreen extends StatefulWidget {
-  const AuthScreen({super.key});
-
-  @override
-  State<AuthScreen> createState() {
-    return _AuthScreenState();
-  }
-}
-
-class _AuthScreenState extends State<AuthScreen> {
+class AuthScreen extends StatelessWidget {
   final _form = GlobalKey<FormState>();
 
   var _enteredEmail = '';
+
   var _enteredPassword = '';
+
   var _enteredUsername = '';
+
   File? _selectedImage;
-
-  void _submit() async {
-    final isValid = _form.currentState!.validate();
-    final authProvider = Provider.of<AuthService>(context, listen: false);
-
-    if (!isValid || !authProvider.isLogin && _selectedImage == null) {
-      print('error');
-      return;
-    }
-
-    _form.currentState!.save();
-
-    try {
-      if (authProvider.isLogin) {
-        final userCredentials = await authProvider.signInWithEmailAndPassword(
-            _enteredEmail, _enteredPassword);
-
-        if (authProvider.user!.user!.email != null) {
-          Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                  builder: (BuildContext context) => const ChatPage()));
-        }
-      } else {
-        final userSign = await authProvider.registerWithEmailAndPassword(
-                _enteredUsername, _enteredEmail, _enteredPassword)
-            as UserCredential;
-
-        final storageRef = FirebaseStorage.instance
-            .ref()
-            .child('user_images')
-            .child('${authProvider.user!.user!.uid}.jpg');
-
-        await storageRef.putFile(_selectedImage!);
-        final imageUrl = await storageRef.getDownloadURL();
-
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(authProvider.user!.user!.uid)
-            .set({
-          'username': _enteredUsername,
-          'email': _enteredEmail,
-          'image_url': imageUrl,
-        });
-
-        authProvider.setLog(true);
-
-        if (authProvider.user!.user!.email != null) {
-          Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                  builder: (BuildContext context) => const ChatPage()));
-        }
-      }
-    } on FirebaseAuthException catch (error) {
-      if (error.code == 'email-already-in-use') {
-        // ...
-      }
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error.message ?? 'Authentication failed.'),
-        ),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
+    void _submit() async {
+      final isValid = _form.currentState!.validate();
+      final authProvider = Provider.of<AuthService>(context, listen: false);
+
+      if (!isValid || !authProvider.isLogin && _selectedImage == null) {
+        print('error');
+        return;
+      }
+
+      _form.currentState!.save();
+
+      try {
+        if (authProvider.isLogin) {
+          final userCredentials = await authProvider.signInWithEmailAndPassword(
+              _enteredEmail, _enteredPassword);
+
+          if (authProvider.user!.user!.email != null) {
+            Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (BuildContext context) => const ChatPage()));
+          }
+        } else {
+          final userSign = await authProvider.registerWithEmailAndPassword(
+                  _enteredUsername, _enteredEmail, _enteredPassword)
+              as UserCredential;
+
+          final storageRef = FirebaseStorage.instance
+              .ref()
+              .child('user_images')
+              .child('${authProvider.user!.user!.uid}.jpg');
+
+          await storageRef.putFile(_selectedImage!);
+          final imageUrl = await storageRef.getDownloadURL();
+
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(authProvider.user!.user!.uid)
+              .set({
+            'username': _enteredUsername,
+            'email': _enteredEmail,
+            'image_url': imageUrl,
+          });
+
+          authProvider.setLog(true);
+
+          if (authProvider.user!.user!.email != null) {
+            Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (BuildContext context) => const ChatPage()));
+          }
+        }
+      } on FirebaseAuthException catch (error) {
+        if (error.code == 'email-already-in-use') {
+          // ...
+        }
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error.message ?? 'Authentication failed.'),
+          ),
+        );
+      }
+    }
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.primary,
       body: Center(
